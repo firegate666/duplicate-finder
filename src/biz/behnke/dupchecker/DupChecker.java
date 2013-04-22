@@ -67,15 +67,21 @@ public class DupChecker extends JFrame {
 
 		encoding_old = new JComboBox(encodings);
 		separator_old = new JComboBox(separators);
+		separator_old.setRenderer(new SeparatorListCellRenderer());
 		quote_old = new JComboBox(quotes);
+		quote_old.setRenderer(new QuotesListCellRenderer());
 
 		encoding_new = new JComboBox(encodings);
 		separator_new = new JComboBox(separators);
+		separator_new.setRenderer(new SeparatorListCellRenderer());
 		quote_new = new JComboBox(quotes);
+		quote_new.setRenderer(new QuotesListCellRenderer());
 
 		encoding_out = new JComboBox(encodings);
 		separator_out = new JComboBox(separators);
+		separator_out.setRenderer(new SeparatorListCellRenderer());
 		quote_out = new JComboBox(quotes);
+		quote_out.setRenderer(new QuotesListCellRenderer());
 	}
 
 	public DupChecker() {
