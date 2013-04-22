@@ -44,9 +44,9 @@ public class DupChecker extends JFrame {
 	protected JTextArea log = new JTextArea("\nREADME\n======\nAll CVS files must have a header row.\n"
 			+ "The output file will contain all entries from file 2 that do NOT exist in file 1.\n\n");
 
-	protected JTextField file_input_old = new JTextField("/path/to/input/olddata");
-	protected JTextField file_input_new = new JTextField("/path/to/input/newdata");
-	protected JTextField file_output = new JTextField("/path/to/output/newfile");
+	protected JComboBox file_input_old = new JComboBox();
+	protected JComboBox file_input_new = new JComboBox();
+	protected JComboBox file_output = new JComboBox();
 
 	protected JComboBox
 			encoding_old, separator_old, quote_old,
@@ -136,6 +136,7 @@ public class DupChecker extends JFrame {
 		initComboBoxes();
 
 		// OLDDATA
+		file_input_old.setRenderer(new FileNameListCellRenderer());
 		top.add(file_input_old);
 		JButton btn_input_old = new JButton("Inputfile Olddata");
 		btn_input_old.addActionListener(new ChooseFileActionListener(this, file_input_old));
@@ -148,6 +149,7 @@ public class DupChecker extends JFrame {
 		top.add(quote_old);
 
 		// NEWDATA
+		file_input_new.setRenderer(new FileNameListCellRenderer());
 		top.add(file_input_new);
 		JButton btn_input_new = new JButton("Inputfile Newdata");
 		btn_input_new.addActionListener(new ChooseFileActionListener(this, file_input_new));
@@ -160,6 +162,7 @@ public class DupChecker extends JFrame {
 		top.add(quote_new);
 
 		// OUTPUTDATA
+		file_output.setRenderer(new FileNameListCellRenderer());
 		top.add(file_output);
 		JButton btn_output = new JButton("Outputfile");
 		btn_output.addActionListener(new ChooseFileActionListener(this, file_output, true));
@@ -263,7 +266,7 @@ public class DupChecker extends JFrame {
 
 		// INPUT file 1
 		BufferedReader bfr = new BufferedReader(new InputStreamReader(
-				new FileInputStream(file_input_old.getText()), encoding_old.getSelectedItem().toString()));
+				new FileInputStream((String)file_input_old.getSelectedItem()), encoding_old.getSelectedItem().toString()));
 
 		Modifier myModifier = new RegexModifier(">", 0, "\t");
 		Reader modifyingReader = new ModifyingReader(bfr, myModifier);
@@ -276,7 +279,7 @@ public class DupChecker extends JFrame {
 
 		CSVReader reader = new CSVReader(modifyingReader, separator_old.getSelectedItem().toString().charAt(0), quote_old.getSelectedItem().toString().charAt(0));
 		long time1 = System.currentTimeMillis();
-		addlog("Read olddata from '"+file_input_old.getText()+"' with encoding "+encoding_old.getSelectedItem().toString());
+		addlog(String.format("Lese Datei 1 von '%s' mit dem Zeichensatz %s", (String)file_input_old.getSelectedItem(), encoding_old.getSelectedItem().toString()));
 
 		int key_column_old = 0;
 		int maxlength = 0;
@@ -314,12 +317,12 @@ public class DupChecker extends JFrame {
 
 		// INPUT file 2
 		bfr = new BufferedReader(new InputStreamReader(new FileInputStream(
-				file_input_new.getText()), encoding_new.getSelectedItem().toString()));
+				(String)file_input_new.getSelectedItem()), encoding_new.getSelectedItem().toString()));
 
 		myModifier = new RegexModifier(">", 0, "\t");
 		modifyingReader = new ModifyingReader(bfr, myModifier);
 
-		addlog("Process newdata from '"+file_input_new.getText()+"' with encoding "+encoding_new.getSelectedItem().toString());
+		addlog(String.format("Lese Datei 2 von '%s' mit dem Zeichensatz %s", (String)file_input_new.getSelectedItem(), encoding_new.getSelectedItem().toString()));
 
 		reader = new CSVReader(modifyingReader, separator_new.getSelectedItem().toString().charAt(0), quote_new.getSelectedItem().toString().charAt(0));
 		time1 = System.currentTimeMillis();
@@ -359,7 +362,7 @@ public class DupChecker extends JFrame {
 
 		// OUTPUT file
 		BufferedWriter bfw = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream(file_output.getText()), encoding_out.getSelectedItem().toString()));
+				new FileOutputStream((String)file_output.getSelectedItem()), encoding_out.getSelectedItem().toString()));
 		CSVWriter writer = new CSVWriter(bfw, separator_out.getSelectedItem().toString().charAt(0), quote_out.getSelectedItem().toString().charAt(0));
 		it = newmap.values().iterator();
 
@@ -385,8 +388,8 @@ public class DupChecker extends JFrame {
 
 		String[] headline = new String[2];
 
-		File infile1 = new File(file_input_new.getText());
-		File infile2 = new File(file_input_old.getText());
+		File infile1 = new File((String)file_input_new.getSelectedItem());
+		File infile2 = new File((String)file_input_old.getSelectedItem());
 
 		headline[1] = "";
 		headline[1] = "Artikel aus " + infile2.getName() + " nicht in " + infile1.getName();
@@ -403,7 +406,7 @@ public class DupChecker extends JFrame {
 		writer.writeNext(temp);
 
 		// data
-		addlog("Write output to '"+file_output.getText()+"' with encoding "+encoding_out.getSelectedItem().toString());
+		addlog(String.format("Schreibe Ausgabedatei nach '%s' mit Zeichensatz %s", (String)file_output.getSelectedItem(), encoding_out.getSelectedItem().toString()));
 		while (it.hasNext()) {
 			l.clear();
 			next = (String[])it.next();

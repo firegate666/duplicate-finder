@@ -3,6 +3,7 @@ package biz.behnke.dupchecker;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import javax.swing.JComboBox;
 
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
@@ -11,16 +12,16 @@ import javax.swing.filechooser.FileFilter;
 public class ChooseFileActionListener implements ActionListener {
 
 	protected DupChecker parent;
-	protected JTextField model;
+	protected JComboBox model;
 	protected boolean saveMode = false;
 
-	public ChooseFileActionListener(DupChecker parent, JTextField model, boolean saveMode) {
+	public ChooseFileActionListener(DupChecker parent, JComboBox model, boolean saveMode) {
 		this.parent = parent;
 		this.model = model;
 		this.saveMode = saveMode;
 	}
 
-	public ChooseFileActionListener(DupChecker parent, JTextField model) {
+	public ChooseFileActionListener(DupChecker parent, JComboBox model) {
 		this(parent, model, false);
 	}
 
@@ -40,7 +41,9 @@ public class ChooseFileActionListener implements ActionListener {
 
 		if (result == JFileChooser.APPROVE_OPTION) {
 			parent.setLastdir(jfc.getSelectedFile().getPath());
-			model.setText(jfc.getSelectedFile().toString());
+			//model.setText(jfc.getSelectedFile().toString());
+
+			model.addItem(jfc.getSelectedFile().toString());
 		}
 	}
 }
