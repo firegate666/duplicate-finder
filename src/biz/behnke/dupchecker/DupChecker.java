@@ -79,7 +79,7 @@ public class DupChecker extends JFrame {
 	}
 
 	public DupChecker() {
-		super("Duplicate Finder");
+		super("Duplicate Finder - Naturkost Nord");
 		initialize();
 	}
 
