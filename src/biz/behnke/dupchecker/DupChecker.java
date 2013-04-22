@@ -89,7 +89,7 @@ public class DupChecker extends JFrame {
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout());
-
+		setExtendedState(MAXIMIZED_BOTH);
 	}
 
 	/**
