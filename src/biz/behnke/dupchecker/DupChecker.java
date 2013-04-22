@@ -225,7 +225,7 @@ public class DupChecker extends JFrame {
 		});
 
 		JScrollPane field_scroll = new JScrollPane(this.moreOutput);
-		maincontainer.add(field_scroll, BorderLayout.EAST);
+		//maincontainer.add(field_scroll, BorderLayout.EAST);
 
 		/*
 		 * init overall panel
