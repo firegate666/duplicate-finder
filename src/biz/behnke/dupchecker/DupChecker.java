@@ -1,6 +1,12 @@
 package biz.behnke.dupchecker;
 
+import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
+import com.googlecode.streamflyer.core.Modifier;
+import com.googlecode.streamflyer.core.ModifyingReader;
+import com.googlecode.streamflyer.regex.RegexModifier;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,15 +14,18 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -28,21 +37,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
-
-import au.com.bytecode.opencsv.CSVReader;
-import au.com.bytecode.opencsv.CSVWriter;
-import com.googlecode.streamflyer.core.Modifier;
-import com.googlecode.streamflyer.core.ModifyingReader;
-import com.googlecode.streamflyer.regex.RegexModifier;
-import java.io.File;
-import java.io.Reader;
-import java.util.Arrays;
 
 public class DupChecker extends JFrame {
 
-	protected JTextArea log = new JTextArea("\nREADME\n======\nAll CVS files must have a header row.\n"
-			+ "The output file will contain all entries from file 2 that do NOT exist in file 1.\n\n");
+	protected JTextArea log = new JTextArea("\nREADME\n======\n"
+			+ "Die Ausgabedatei enthält alle Daten aus Datei 2, die nicht in Datei 1 vorhanden sind.\n\n");
 
 	protected JComboBox file_input_old = new JComboBox();
 	protected JComboBox file_input_new = new JComboBox();
@@ -114,7 +115,7 @@ public class DupChecker extends JFrame {
 	 * @param String[] next
 	 */
 	protected void showExample(String[] next) {
-		addlog("Example output:");
+		addlog("Beispielausgabe:");
 		for (int i = 0; i <next.length; i++) {
 			addlog("\t"+i+": "+next[i]);
 		}
@@ -144,12 +145,12 @@ public class DupChecker extends JFrame {
 		// OLDDATA
 		file_input_old.setRenderer(new FileNameListCellRenderer());
 		top.add(file_input_old);
-		JButton btn_input_old = new JButton("Inputfile Olddata");
+		JButton btn_input_old = new JButton("Datei 1");
 		btn_input_old.addActionListener(new ChooseFileActionListener(this, file_input_old));
 		top.add(btn_input_old);
-		top.add(new JLabel("Encoding", SwingConstants.CENTER));
+		top.add(new JLabel("Zeichensatz", SwingConstants.CENTER));
 		top.add(encoding_old);
-		top.add(new JLabel("Separator", SwingConstants.CENTER));
+		top.add(new JLabel("Trennzeichen", SwingConstants.CENTER));
 		top.add(separator_old);
 		top.add(new JLabel("Quotes", SwingConstants.CENTER));
 		top.add(quote_old);
@@ -157,12 +158,12 @@ public class DupChecker extends JFrame {
 		// NEWDATA
 		file_input_new.setRenderer(new FileNameListCellRenderer());
 		top.add(file_input_new);
-		JButton btn_input_new = new JButton("Inputfile Newdata");
+		JButton btn_input_new = new JButton("Datei 2");
 		btn_input_new.addActionListener(new ChooseFileActionListener(this, file_input_new));
 		top.add(btn_input_new);
-		top.add(new JLabel("Encoding", SwingConstants.CENTER));
+		top.add(new JLabel("Zeichensatz", SwingConstants.CENTER));
 		top.add(encoding_new);
-		top.add(new JLabel("Separator", SwingConstants.CENTER));
+		top.add(new JLabel("Trennzeichen", SwingConstants.CENTER));
 		top.add(separator_new);
 		top.add(new JLabel("Quotes", SwingConstants.CENTER));
 		top.add(quote_new);
@@ -170,12 +171,12 @@ public class DupChecker extends JFrame {
 		// OUTPUTDATA
 		file_output.setRenderer(new FileNameListCellRenderer());
 		top.add(file_output);
-		JButton btn_output = new JButton("Outputfile");
+		JButton btn_output = new JButton("Ausgabedatei");
 		btn_output.addActionListener(new ChooseFileActionListener(this, file_output, true));
 		top.add(btn_output);
-		top.add(new JLabel("Encoding", SwingConstants.CENTER));
+		top.add(new JLabel("Zeichensatz", SwingConstants.CENTER));
 		top.add(encoding_out);
-		top.add(new JLabel("Separator", SwingConstants.CENTER));
+		top.add(new JLabel("Trennzeichen", SwingConstants.CENTER));
 		top.add(separator_out);
 		top.add(new JLabel("Quotes", SwingConstants.CENTER));
 		top.add(quote_out);
@@ -191,7 +192,7 @@ public class DupChecker extends JFrame {
 		/*
 		 * bottom panel
 		 */
-		JButton start = new JButton("Start duplicate check");
+		JButton start = new JButton("Beginne den Abgleich");
 		start.addActionListener(new ActionListener() {
 
 			@Override
@@ -199,7 +200,7 @@ public class DupChecker extends JFrame {
 				try {
 					process();
 				} catch (IOException e1) {
-					addlog("ERROR: "+e1.getMessage());
+					addlog("Fehler: "+e1.getMessage());
 				}
 			}
 
@@ -302,11 +303,11 @@ public class DupChecker extends JFrame {
 		reader.close();
 
 		showExample(example);
-		if (JOptionPane.showConfirmDialog(this, "Check example output. Data recognized correctly?", "Check data", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+		if (JOptionPane.showConfirmDialog(this, "Beispielausgabe prüfen. Daten richtig erkannt?", "Prüfe Daten Datei 1", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
 			return;
 		}
 
-		Object result = JOptionPane.showInputDialog(this, "Select column for duplicate check", "Select column for duplicate check", JOptionPane.QUESTION_MESSAGE, null, buildColSelect(example), "0");
+		Object result = JOptionPane.showInputDialog(this, "Spalte für den Abgleich wählen", "Spalte für den Abgleich wählen", JOptionPane.QUESTION_MESSAGE, null, buildColSelect(example), "0");
 		key_column_old = new Integer(result.toString()).intValue();
 
 		Iterator<String[]> it = templist.iterator();
@@ -316,8 +317,7 @@ public class DupChecker extends JFrame {
 		}
 
 		long time2 = System.currentTimeMillis();
-		addlog("Read olddatas (" + oldmap.size() + ") took "
-				+ (time2 - time1) + " ms, " + ((time2 - time1) / 1000) + " s");
+		addlog(String.format("Einlesen von Datei 1 (%d) dauerte %d ms, %d s", oldmap.size(), time2 - time1, (time2 - time1) / 1000));
 
 		HashMap<String, String[]> newmap = new HashMap<String, String[]>(10000);
 
@@ -345,14 +345,6 @@ public class DupChecker extends JFrame {
 			}
 			if (first) {
 				column_data_2 = next;
-//				showExample(next);
-//				if (JOptionPane.showConfirmDialog(this, "Check example output. Data recognized correctly?", "Check data", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
-//					return;
-//				}
-//
-//				result = JOptionPane.showInputDialog(this, "Select column for duplicate check", "Select column for duplicate check", JOptionPane.QUESTION_MESSAGE, null, buildColSelect(next), "0");
-//				key_column_new = new Integer(result.toString()).intValue();
-
 				first = false;
 			}
 			if (!oldmap.containsKey(next[key_column_new])) {
@@ -362,31 +354,13 @@ public class DupChecker extends JFrame {
 		}
 		reader.close();
 		time2 = System.currentTimeMillis();
-		addlog("Processed " + records + " datas. Found "
-				+ newmap.size() + " non-duplicates; took " + (time2 - time1)
-				+ " ms, " + ((time2 - time1) / 1000) + " s");
+		addlog(String.format("Processed %d datas. Found %d non-duplicates; took %d ms, %d s", records, newmap.size(), time2 - time1, (time2 - time1) / 1000));
 
 		// OUTPUT file
 		BufferedWriter bfw = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream((String)file_output.getSelectedItem()), encoding_out.getSelectedItem().toString()));
 		CSVWriter writer = new CSVWriter(bfw, separator_out.getSelectedItem().toString().charAt(0), quote_out.getSelectedItem().toString().charAt(0));
 		it = newmap.values().iterator();
-
-		DefaultListModel mymodel = (DefaultListModel)moreOutput.getModel();
-		Object[] additional = mymodel.toArray();
-//		String[] moreHeader = new String[additional.length];
-//		String[] moreData = new String[additional.length];
-//		for(int i = 0; i<additional.length; i++) {
-//			String[] temp = ((String)additional[i]).split("=");
-//			if (temp.length != 2) {
-//				addlog("Misconfigured extra column: "+additional[i].toString()+"; skipped");
-//				moreHeader[i] = "#"+i;
-//				moreData[i] = "#"+i;
-//				continue;
-//			}
-//			moreHeader[i] = temp[0];
-//			moreData[i] = temp[1];
-//		}
 
 		// headline
 		ArrayList<String> l;
@@ -398,7 +372,7 @@ public class DupChecker extends JFrame {
 		File infile2 = new File((String)file_input_old.getSelectedItem());
 
 		headline[1] = "";
-		headline[1] = "Artikel aus " + infile2.getName() + " nicht in " + infile1.getName();
+		headline[1] = "Daten aus " + infile2.getName() + " nicht in " + infile1.getName();
 
 		l.addAll(Arrays.asList(headline));
 		String[] temp = l.toArray(new String[l.size()]);
@@ -413,6 +387,7 @@ public class DupChecker extends JFrame {
 
 		// data
 		addlog(String.format("Schreibe Ausgabedatei nach '%s' mit Zeichensatz %s", (String)file_output.getSelectedItem(), encoding_out.getSelectedItem().toString()));
+
 		while (it.hasNext()) {
 			l.clear();
 			next = (String[])it.next();
@@ -423,7 +398,7 @@ public class DupChecker extends JFrame {
 			writer.writeNext(l.toArray(new String[l.size()]));
 		}
 		writer.close();
-		addlog("Finished writing output.");
+		addlog("Fertig.");
 
 	}
 
