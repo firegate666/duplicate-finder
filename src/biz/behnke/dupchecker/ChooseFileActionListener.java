@@ -6,7 +6,6 @@ import java.io.File;
 import javax.swing.JComboBox;
 
 import javax.swing.JFileChooser;
-import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
 public class ChooseFileActionListener implements ActionListener {
@@ -25,24 +24,28 @@ public class ChooseFileActionListener implements ActionListener {
 		this(parent, model, false);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		JFileChooser jfc = new JFileChooser();
 
 		jfc.setCurrentDirectory(new File(parent.getLastdir()));
 		jfc.setFileFilter(new FileFilter(){
+			@Override
 			public boolean accept(File f) {return f.isDirectory() || f.toString().endsWith(".csv") || f.toString().endsWith(".TXT");}
+			@Override
 			public String getDescription() {return "*.csv,*.TXT";}
 		});
 		int result;
 
-		if (saveMode)
+		if (saveMode) {
 			result = jfc.showSaveDialog(parent);
-		else
+		}
+		else {
 			result = jfc.showOpenDialog(parent);
+		}
 
 		if (result == JFileChooser.APPROVE_OPTION) {
 			parent.setLastdir(jfc.getSelectedFile().getPath());
-			//model.setText(jfc.getSelectedFile().toString());
 
 			model.addItem(jfc.getSelectedFile().toString());
 		}
