@@ -340,20 +340,20 @@ public class DupChecker extends JFrame {
 		reader = new CSVReader(modifyingReader, separator_new.getSelectedItem().toString().charAt(0), quote_new.getSelectedItem().toString().charAt(0));
 		time1 = System.currentTimeMillis();
 		long records = 0;
-		boolean first = true;
+//		boolean first = true;
 		int key_column_new = key_column_old;
 
 		// used for output file
-		String[] column_data_2 = null;
+//		String[] column_data_2 = null;
 		while ((next = reader.readNext()) != null) {
 			next = removeUnwanted(next);
 			if (next.length != maxlength) {
 				continue;
 			}
-			if (first) {
-				column_data_2 = next;
-				first = false;
-			}
+//			if (first) {
+//				column_data_2 = next;
+//				first = false;
+//			}
 			if (!oldmap.containsKey(next[key_column_new])) {
 				newmap.put(next[key_column_new], next);
 			}
@@ -385,11 +385,6 @@ public class DupChecker extends JFrame {
 		writer.writeNext(temp);
 
 		l.clear();
-		l.addAll(Arrays.asList(column_data_2));
-//		l.addAll(Arrays.asList(moreHeader));
-
-		temp = l.toArray(new String[l.size()]);
-		writer.writeNext(temp);
 
 		// data
 		addlog(String.format("Schreibe Ausgabedatei nach '%s' mit Zeichensatz %s", (String)file_output.getSelectedItem(), encoding_out.getSelectedItem().toString()));
