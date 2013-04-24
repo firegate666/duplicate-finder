@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import javax.swing.ComboBoxModel;
+import java.util.TreeMap;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -39,8 +39,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 
 public class DupChecker extends JFrame {
@@ -260,7 +258,7 @@ public class DupChecker extends JFrame {
 
 		});
 
-		JScrollPane field_scroll = new JScrollPane(this.moreOutput);
+//		JScrollPane field_scroll = new JScrollPane(this.moreOutput);
 		//maincontainer.add(field_scroll, BorderLayout.EAST);
 
 		/*
