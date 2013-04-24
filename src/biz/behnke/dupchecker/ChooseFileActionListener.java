@@ -27,7 +27,8 @@ public class ChooseFileActionListener implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		JFileChooser jfc = new JFileChooser();
-		jfc.setSelectedFile(new File(parent.getLastdir()));
+
+		jfc.setCurrentDirectory(new File(parent.getLastdir()));
 		jfc.setFileFilter(new FileFilter(){
 			public boolean accept(File f) {return f.isDirectory() || f.toString().endsWith(".csv") || f.toString().endsWith(".TXT");}
 			public String getDescription() {return "*.csv,*.TXT";}
