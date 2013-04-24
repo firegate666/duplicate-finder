@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TreeMap;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -46,9 +47,9 @@ public class DupChecker extends JFrame {
 	protected JTextArea log = new JTextArea("\nREADME\n======\n"
 			+ "Die Ausgabedatei enthält alle Daten aus Datei 2, die nicht in Datei 1 vorhanden sind.\n\n");
 
-	protected JComboBox file_input_old = new JComboBox();
-	protected JComboBox file_input_new = new JComboBox();
-	protected JComboBox file_output = new JComboBox();
+	protected JComboBox file_input_old = new JComboBox(new DefaultComboBoxModel());
+	protected JComboBox file_input_new = new JComboBox(new DefaultComboBoxModel());
+	protected JComboBox file_output = new JComboBox(new DefaultComboBoxModel());
 
 	protected JComboBox
 			encoding_old, separator_old, quote_old,

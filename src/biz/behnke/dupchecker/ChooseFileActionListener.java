@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
@@ -60,7 +61,11 @@ public class ChooseFileActionListener implements ActionListener {
 
 		if (result == JFileChooser.APPROVE_OPTION) {
 			parent.setLastdir(jfc.getSelectedFile().getPath());
-			model.addItem(jfc.getSelectedFile().toString());
+
+			if (((DefaultComboBoxModel)model.getModel()).getIndexOf(jfc.getSelectedFile().toString()) == -1) {
+				model.addItem(jfc.getSelectedFile().toString());
+			}
+			model.setSelectedItem(jfc.getSelectedFile().toString());
 
 			this.setDependingComponentsEnabled(true);
 		}
