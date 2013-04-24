@@ -367,7 +367,6 @@ public class DupChecker extends JFrame {
 		BufferedWriter bfw = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream((String)file_output.getSelectedItem()), encoding_out.getSelectedItem().toString()));
 		CSVWriter writer = new CSVWriter(bfw, separator_out.getSelectedItem().toString().charAt(0), quote_out.getSelectedItem().toString().charAt(0));
-		it = newmap.values().iterator();
 
 		// headline
 		ArrayList<String> l;
@@ -395,6 +394,10 @@ public class DupChecker extends JFrame {
 		// data
 		addlog(String.format("Schreibe Ausgabedatei nach '%s' mit Zeichensatz %s", (String)file_output.getSelectedItem(), encoding_out.getSelectedItem().toString()));
 
+		TreeMap<String, String[]> writemap = new TreeMap<String, String[]>(new NaturalOrderComparator());
+		writemap.putAll(newmap);
+
+		it = writemap.values().iterator();
 		while (it.hasNext()) {
 			l.clear();
 			next = (String[])it.next();
