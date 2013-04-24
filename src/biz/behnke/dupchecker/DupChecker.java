@@ -146,7 +146,6 @@ public class DupChecker extends JFrame {
 		file_input_old.setRenderer(new FileNameListCellRenderer());
 		top.add(file_input_old);
 		JButton btn_input_old = new JButton("Datei 1");
-		btn_input_old.addActionListener(new ChooseFileActionListener(this, file_input_old));
 		top.add(btn_input_old);
 		top.add(new JLabel("Zeichensatz", SwingConstants.CENTER));
 		top.add(encoding_old);
@@ -159,7 +158,6 @@ public class DupChecker extends JFrame {
 		file_input_new.setRenderer(new FileNameListCellRenderer());
 		top.add(file_input_new);
 		JButton btn_input_new = new JButton("Datei 2");
-		btn_input_new.addActionListener(new ChooseFileActionListener(this, file_input_new));
 		top.add(btn_input_new);
 		top.add(new JLabel("Zeichensatz", SwingConstants.CENTER));
 		top.add(encoding_new);
@@ -172,7 +170,6 @@ public class DupChecker extends JFrame {
 		file_output.setRenderer(new FileNameListCellRenderer());
 		top.add(file_output);
 		JButton btn_output = new JButton("Ausgabedatei");
-		btn_output.addActionListener(new ChooseFileActionListener(this, file_output, true));
 		top.add(btn_output);
 		top.add(new JLabel("Zeichensatz", SwingConstants.CENTER));
 		top.add(encoding_out);
@@ -180,6 +177,16 @@ public class DupChecker extends JFrame {
 		top.add(separator_out);
 		top.add(new JLabel("Quotes", SwingConstants.CENTER));
 		top.add(quote_out);
+
+
+
+		Component[] dependingComponents = {btn_input_new, file_input_new};
+		btn_input_old.addActionListener(new ChooseFileActionListener(this, file_input_old, false, dependingComponents));
+
+		Component[] dependingComponents2 = {btn_output, file_output};
+		btn_input_new.addActionListener(new ChooseFileActionListener(this, file_input_new, false, dependingComponents2));
+
+		btn_output.addActionListener(new ChooseFileActionListener(this, file_output, true));
 
 		maincontainer.add(top, BorderLayout.NORTH);
 
