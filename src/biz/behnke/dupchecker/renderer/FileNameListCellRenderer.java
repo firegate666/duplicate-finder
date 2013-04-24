@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package biz.behnke.dupchecker;
+package biz.behnke.dupchecker.renderer;
 
 import java.awt.Component;
 import java.io.File;
