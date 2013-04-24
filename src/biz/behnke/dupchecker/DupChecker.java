@@ -270,6 +270,50 @@ public class DupChecker extends JFrame {
 
 	}
 
+    protected Object unserializeObject( String serialized_patches1 ) {
+        ByteArrayInputStream bis = new ByteArrayInputStream(serialized_patches1.getBytes());
+		ObjectInputStream oInputStream = null;
+		Object restored = null;
+		try {
+			oInputStream = new ObjectInputStream(bis);
+			restored = oInputStream.readObject();
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(DupChecker.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (IOException ex) {
+			Logger.getLogger(DupChecker.class.getName()).log(Level.SEVERE, null, ex);
+		} finally {
+			try {
+				oInputStream.close();
+			} catch (IOException ex) {
+				Logger.getLogger(DupChecker.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
+		// patches1 equals restored_patches1
+
+		return restored;
+    }
+
+    protected String serializeObject( Serializable patches1 ) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ObjectOutputStream os = null;
+		String serialized_patches1 = "";
+		try {
+			os = new ObjectOutputStream(bos);
+			os.writeObject(patches1);
+			serialized_patches1 = bos.toString();
+		} catch (IOException ex) {
+			Logger.getLogger(DupChecker.class.getName()).log(Level.SEVERE, null, ex);
+		} finally {
+			try {
+				os.close();
+			} catch (IOException ex) {
+				Logger.getLogger(DupChecker.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
+
+		return serialized_patches1;
+    }
+
 	/**
 	 * print a message to the log
 	 *
