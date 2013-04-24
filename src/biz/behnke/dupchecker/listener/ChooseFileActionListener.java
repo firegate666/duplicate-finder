@@ -1,5 +1,6 @@
-package biz.behnke.dupchecker;
+package biz.behnke.dupchecker.listener;
 
+import biz.behnke.dupchecker.DupChecker;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,8 +22,6 @@ public class ChooseFileActionListener implements ActionListener {
 		this.model = model;
 		this.saveMode = saveMode;
 		this.dependingComponents = dependingComponents;
-
-		this.setDependingComponentsEnabled(false);
 	}
 
 	private void setDependingComponentsEnabled(boolean newEnabled) {
@@ -43,7 +42,12 @@ public class ChooseFileActionListener implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		JFileChooser jfc = new JFileChooser();
 
-		jfc.setCurrentDirectory(new File(parent.getLastdir()));
+		if (model.getSelectedIndex() != -1) {
+			jfc.setSelectedFile(new File((String)model.getSelectedItem()));
+		} else {
+			jfc.setCurrentDirectory(new File(parent.getLastdir()));
+		}
+
 		jfc.setFileFilter(new FileFilter(){
 			@Override
 			public boolean accept(File f) {return f == null || f.isDirectory() || f.toString().endsWith(".csv") || f.toString().endsWith(".TXT");}
