@@ -8,6 +8,9 @@ import com.googlecode.streamflyer.regex.RegexModifier;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.awt.Menu;
+import java.awt.MenuBar;
+import java.awt.MenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -96,6 +99,22 @@ public class DupChecker extends JFrame {
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout());
+
+		MenuBar mb = new MenuBar();
+		Menu menu = new Menu("Info");
+		MenuItem menu_item_about = new MenuItem("Über");
+		final JFrame clone = this;
+		menu_item_about.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(clone, "Dieser Programm dienst dem Abgleich zweier CSV Dateien", "Über dieses Programm", JOptionPane.INFORMATION_MESSAGE);
+			}
+		});
+		menu.add(menu_item_about);
+		mb.add(menu);
+		setMenuBar(mb);
+
 		setExtendedState(MAXIMIZED_BOTH);
 	}
 
