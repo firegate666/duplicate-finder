@@ -338,7 +338,7 @@ public class DupChecker extends JFrame {
 		Iterator<String[]> it = templist.iterator();
 		while (it.hasNext()) {
 			next = it.next();
-			oldmap.put(next[key_column_old], next);
+			oldmap.put(next[key_column_old].trim(), next);
 		}
 
 		long time2 = System.currentTimeMillis();
@@ -372,8 +372,8 @@ public class DupChecker extends JFrame {
 //				column_data_2 = next;
 //				first = false;
 //			}
-			if (!oldmap.containsKey(next[key_column_new])) {
-				newmap.put(next[key_column_new], next);
+			if (!oldmap.containsKey(next[key_column_new].trim())) {
+				newmap.put(next[key_column_new].trim(), next);
 			}
 			records++;
 		}
