@@ -1,5 +1,11 @@
 package biz.behnke.dupchecker;
 
+import biz.behnke.dupchecker.renderer.QuotesListCellRenderer;
+import biz.behnke.dupchecker.renderer.SeparatorListCellRenderer;
+import biz.behnke.dupchecker.renderer.FileNameListCellRenderer;
+import biz.behnke.dupchecker.listener.WindowClosingAdapter;
+import biz.behnke.dupchecker.listener.ChooseFileActionListener;
+import biz.behnke.dupchecker.listener.WindowPropertyChangeListener;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import com.googlecode.streamflyer.core.Modifier;
@@ -17,18 +23,27 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -47,9 +62,9 @@ public class DupChecker extends JFrame {
 	protected JTextArea log = new JTextArea("\nREADME\n======\n"
 			+ "Die Ausgabedatei enthält alle Daten aus Datei 2, die nicht in Datei 1 vorhanden sind.\n\n");
 
-	protected JComboBox file_input_old = new JComboBox(new DefaultComboBoxModel());
-	protected JComboBox file_input_new = new JComboBox(new DefaultComboBoxModel());
-	protected JComboBox file_output = new JComboBox(new DefaultComboBoxModel());
+	protected JComboBox file_input_old;
+	protected JComboBox file_input_new;
+	protected JComboBox file_output;
 
 	protected JComboBox
 			encoding_old, separator_old, quote_old,
@@ -60,6 +75,9 @@ public class DupChecker extends JFrame {
 
 	protected String lastdir = "";
 
+	File iniFile;
+	Properties applicationProperties = new Properties();
+
 	/**
 	 * set up combo boxes with their default values
 	 */
@@ -67,6 +85,44 @@ public class DupChecker extends JFrame {
 		String[] encodings = new String[]{"CP865", "UTF-8", "ISO-8859-1"};
 		String[] separators = new String[]{"\t", ",", ";"};
 		String[] quotes = new String[]{"\0", "\"", "'"};
+
+		String filelist_in_1 = getProperty("filelist_in_1", "");
+		String filelist_in_2 = getProperty("filelist_in_2", "");
+		String filelist_out = getProperty("filelist_out", "");
+
+		int filelist_in_1_selected = Integer.parseInt(getProperty("filelist_in_1_selected", "0"));
+		int filelist_in_2_selected = Integer.parseInt(getProperty("filelist_in_2_selected", "0"));
+		int filelist_out_selected = Integer.parseInt(getProperty("filelist_out_selected", "0"));
+
+		if (!filelist_in_1.equals("")) {
+			file_input_old = new JComboBox(new DefaultComboBoxModel(filelist_in_1.split("\\|")));
+			file_input_old.setSelectedIndex(filelist_in_1_selected);
+		} else {
+			file_input_old = new JComboBox(new DefaultComboBoxModel());
+		}
+
+		if (!filelist_in_2.equals("")) {
+			file_input_new = new JComboBox(new DefaultComboBoxModel(filelist_in_2.split("\\|")));
+			file_input_new.setSelectedIndex(filelist_in_2_selected);
+		} else {
+			file_input_new = new JComboBox(new DefaultComboBoxModel());
+		}
+
+		if (!filelist_out.equals("")) {
+			file_output = new JComboBox(new DefaultComboBoxModel(filelist_out.split("\\|")));
+			file_output.setSelectedIndex(filelist_out_selected);
+		} else {
+			file_output = new JComboBox(new DefaultComboBoxModel());
+		}
+
+
+		if (filelist_in_1.length() == 0) {
+			file_input_new.setEnabled(false);
+		}
+
+		if (filelist_in_2.length() == 0) {
+			file_output.setEnabled(false);
+		}
 
 		encoding_old = new JComboBox(encodings);
 		separator_old = new JComboBox(separators);
@@ -113,8 +169,6 @@ public class DupChecker extends JFrame {
 		menu.add(menu_item_about);
 		mb.add(menu);
 		setMenuBar(mb);
-
-		setExtendedState(MAXIMIZED_BOTH);
 	}
 
 	/**
@@ -148,7 +202,22 @@ public class DupChecker extends JFrame {
 		lastdir = newdir;
 	}
 
+	protected void resetLastWindowState() {
+		int x = Integer.parseInt(getProperty("window.left", "10"));
+		int y = Integer.parseInt(getProperty("window.top", "10"));
+		int w = Integer.parseInt(getProperty("window.width", "800"));
+		int h = Integer.parseInt(getProperty("window.height", "600"));
+
+		this.setBounds(x, y, w, h);
+
+		int s = Integer.parseInt(getProperty("window.state", "" + JFrame.MAXIMIZED_BOTH));
+		this.setExtendedState(s);
+	}
+
 	private void initialize() {
+		setupApplicationLocalData();
+		resetLastWindowState();
+
 		setMargin();
 
 		JPanel maincontainer = new JPanel(new BorderLayout());
@@ -176,6 +245,7 @@ public class DupChecker extends JFrame {
 		file_input_new.setRenderer(new FileNameListCellRenderer());
 		top.add(file_input_new);
 		JButton btn_input_new = new JButton("Datei 2");
+		btn_input_new.setEnabled(file_input_old.getItemCount() > 0);
 		top.add(btn_input_new);
 		top.add(new JLabel("Zeichensatz", SwingConstants.CENTER));
 		top.add(encoding_new);
@@ -188,6 +258,7 @@ public class DupChecker extends JFrame {
 		file_output.setRenderer(new FileNameListCellRenderer());
 		top.add(file_output);
 		JButton btn_output = new JButton("Ausgabedatei");
+		btn_output.setEnabled(file_input_new.getItemCount() > 0);
 		top.add(btn_output);
 		top.add(new JLabel("Zeichensatz", SwingConstants.CENTER));
 		top.add(encoding_out);
@@ -195,8 +266,6 @@ public class DupChecker extends JFrame {
 		top.add(separator_out);
 		top.add(new JLabel("Quotes", SwingConstants.CENTER));
 		top.add(quote_out);
-
-
 
 		Component[] dependingComponents = {btn_input_new, file_input_new};
 		btn_input_old.addActionListener(new ChooseFileActionListener(this, file_input_old, false, dependingComponents));
@@ -267,7 +336,9 @@ public class DupChecker extends JFrame {
 		 */
 		add(maincontainer, BorderLayout.CENTER);
 
-
+		this.getContentPane().addHierarchyBoundsListener(new WindowPropertyChangeListener(this));
+		this.addWindowStateListener(new WindowPropertyChangeListener(this));
+		this.addWindowListener(new WindowClosingAdapter(this));
 	}
 
     protected Object unserializeObject( String serialized_patches1 ) {
@@ -332,9 +403,102 @@ public class DupChecker extends JFrame {
 		return cols;
 	}
 
+	public String getFilelistIn1() {
+		int num_of_items = file_input_old.getItemCount();
+		String itemList = "";
+		for ( int i = 0;  i < num_of_items; i++) {
+			itemList += (String)file_input_old.getItemAt(i);
+			if (i < num_of_items - 1) {
+				itemList += "|";
+			}
+
+		}
+		return itemList;
+	}
+
+	public int getFilelistIn1Selected() {
+		return file_input_old.getSelectedIndex();
+	}
+
+	public String getFilelistIn2() {
+		int num_of_items = file_input_new.getItemCount();
+		String itemList = "";
+		for ( int i = 0;  i < num_of_items; i++) {
+			itemList += (String)file_input_new.getItemAt(i);
+			if (i < num_of_items - 1) {
+				itemList += "|";
+			}
+
+		}
+		return itemList;
+	}
+
+	public int getFilelistIn2Selected() {
+		return file_input_new.getSelectedIndex();
+	}
+
+	public String getFilelistOut() {
+		int num_of_items = file_output.getItemCount();
+		String itemList = "";
+		for ( int i = 0;  i < num_of_items; i++) {
+			itemList += (String)file_output.getItemAt(i);
+			if (i < num_of_items - 1) {
+				itemList += "|";
+			}
+
+		}
+		return itemList;
+	}
+
+	public int getFilelistOutSelected() {
+		return file_output.getSelectedIndex();
+	}
+
+	public String getProperty(String key, String defaultValue) {
+		String result = defaultValue;
+		try {
+			result = applicationProperties.getProperty(key, defaultValue);
+		} catch (Exception ex) {
+			Logger.getLogger(DupChecker.class.getName()).log(Level.SEVERE, null, ex);
+		}
+
+		return result;
+	}
+
+	public void updateProperty(String key, String value) {
+		try {
+			applicationProperties.setProperty(key, value);
+			applicationProperties.store(new FileOutputStream(iniFile), "application properties");
+		} catch (IOException ex) {
+			Logger.getLogger(DupChecker.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+
+	protected void setupApplicationLocalData() {
+		String appdir = System.getProperty("user.home") + File.separator + ".dupchecker" + File.separator;
+		File f_appdir = new File(appdir);
+
+		if (!f_appdir.exists()) {
+			f_appdir.mkdir();
+		}
+
+		iniFile = new File(appdir + File.separator + "app.ini");
+
+
+		try {
+			if (!iniFile.exists()) {
+				iniFile.createNewFile();
+			}
+			applicationProperties.load(new FileInputStream(iniFile));
+		} catch (FileNotFoundException ex) {
+			Logger.getLogger(DupChecker.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (IOException ex) {
+			Logger.getLogger(DupChecker.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
 		DupChecker main = new DupChecker();
-		main.setBounds(10, 10, 800, 600);
 		main.setVisible(true);
 	}
 
@@ -478,4 +642,3 @@ public class DupChecker extends JFrame {
 	}
 
 }
-
