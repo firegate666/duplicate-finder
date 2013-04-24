@@ -45,7 +45,7 @@ public class ChooseFileActionListener implements ActionListener {
 		jfc.setCurrentDirectory(new File(parent.getLastdir()));
 		jfc.setFileFilter(new FileFilter(){
 			@Override
-			public boolean accept(File f) {return f.isDirectory() || f.toString().endsWith(".csv") || f.toString().endsWith(".TXT");}
+			public boolean accept(File f) {return f == null || f.isDirectory() || f.toString().endsWith(".csv") || f.toString().endsWith(".TXT");}
 			@Override
 			public String getDescription() {return "*.csv,*.TXT";}
 		});
