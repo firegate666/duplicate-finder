@@ -534,6 +534,8 @@ public class DupChecker extends JFrame {
 			}
 		}
 		reader.close();
+		modifyingReader.close();
+		bfr.close();;
 
 		showExample(example);
 		if (JOptionPane.showConfirmDialog(this, "Beispielausgabe prüfen. Daten richtig erkannt?", "Prüfe Daten Datei 1", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
@@ -586,6 +588,9 @@ public class DupChecker extends JFrame {
 			records++;
 		}
 		reader.close();
+		modifyingReader.close();
+		bfr.close();;
+
 		time2 = System.currentTimeMillis();
 		addlog(String.format("Processed %d datas. Found %d non-duplicates; took %d ms, %d s", records, newmap.size(), time2 - time1, (time2 - time1) / 1000));
 
