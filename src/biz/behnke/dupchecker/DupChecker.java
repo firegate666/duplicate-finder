@@ -600,8 +600,8 @@ public class DupChecker extends JFrame {
 
 		String[] headline = new String[2];
 
-		File infile1 = new File((String)file_input_new.getSelectedItem());
-		File infile2 = new File((String)file_input_old.getSelectedItem());
+		File infile1 = new File((String)file_input_old.getSelectedItem());
+		File infile2 = new File((String)file_input_new.getSelectedItem());
 
 		headline[1] = "";
 		headline[1] = "Daten aus " + infile2.getName() + " nicht in " + infile1.getName();
